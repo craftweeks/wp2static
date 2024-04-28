@@ -51,6 +51,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.repository.name }}
-        path: $$TMP_DIR
+        path: plugintmp
 
     
