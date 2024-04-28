@@ -14,14 +14,43 @@ jobs:
 
     - name: Build plugin # modify this step as needed
       run: |
-        composer install --no-dev
-        composer build wp2static.zip
+        # run script from project root
+        EXEC_DIR=$(pwd)
+        
+        TMP_DIR="$EXEC_DIR/plugintmp"
+        rm -Rf "$TMP_DIR"
+        mkdir -p "$TMP_DIR"
+        
+        rm -Rf "$TMP_DIR/wp2static"
+        mkdir "$TMP_DIR/wp2static"
+        
+        # clear dev dependencies
+        rm -Rf "$EXEC_DIR/vendor/*"
+        # load prod deps and optimize loader
+        composer install --quiet --no-dev --optimize-autoloader
+        
+        # cp all required sources to build dir
+        cp -r "$EXEC_DIR"/src "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/vendor "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/views "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/css "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/js "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/*.php "$TMP_DIR"/wp2static/
+        
+        cd "$TMP_DIR" || exit
+        
+        # tidy permissions
+        find . -type d -exec chmod 755 {} \;
+        find . -type f -exec chmod 644 {} \;
+        
+        zip --quiet -r -9 "./$1.zip" ./wp2static
+      shell: bash
 
     - name: Upload the archive as an artifact
       id: upload-plugin-artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.repository.name }}
-        path: $HOME/Downloads
+        path: $$TMP_DIR
 
     
