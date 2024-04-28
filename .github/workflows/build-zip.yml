@@ -18,6 +18,6 @@ jobs:
         npm run build
 
     - name: Generate zip
-      uses: 10up/action-wordpress-plugin-build-zip@v1.0.1
+      uses: 10up/action-wordpress-plugin-build-zip@stable
       with:
         retention-days: 5 # Optional; defaults to 5
