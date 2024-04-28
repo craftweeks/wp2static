@@ -42,8 +42,6 @@ jobs:
         # tidy permissions
         find . -type d -exec chmod 755 {} \;
         find . -type f -exec chmod 644 {} \;
-        
-        zip --quiet -r -9 "./wp2static.zip" ./wp2static
       shell: bash
 
     - name: Upload the archive as an artifact
@@ -51,6 +49,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ github.event.repository.name }}
-        path: plugintmp/wp2static.zip
+        path: plugintmp/wp2static
 
     
