@@ -1,0 +1,54 @@
+name: Build release zip
+
+on:
+  workflow_dispatch
+
+jobs:
+  build:
+    name: Build release zip
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Build plugin # modify this step as needed
+      run: |
+        # run script from project root
+        EXEC_DIR=$(pwd)
+        
+        TMP_DIR="$EXEC_DIR/plugintmp"
+        rm -Rf "$TMP_DIR"
+        mkdir -p "$TMP_DIR"
+        
+        rm -Rf "$TMP_DIR/wp2static"
+        mkdir "$TMP_DIR/wp2static"
+        
+        # clear dev dependencies
+        rm -Rf "$EXEC_DIR/vendor/*"
+        # load prod deps and optimize loader
+        composer install --quiet --no-dev --optimize-autoloader
+        
+        # cp all required sources to build dir
+        cp -r "$EXEC_DIR"/src "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/vendor "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/views "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/css "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/js "$TMP_DIR"/wp2static/
+        cp -r "$EXEC_DIR"/*.php "$TMP_DIR"/wp2static/
+        
+        cd "$TMP_DIR" || exit
+        
+        # tidy permissions
+        find . -type d -exec chmod 755 {} \;
+        find . -type f -exec chmod 644 {} \;
+      shell: bash
+
+    - name: Upload the archive as an artifact
+      id: upload-plugin-artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ github.event.repository.name }}
+        path: plugintmp/wp2static
+
+    
